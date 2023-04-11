@@ -1,0 +1,67 @@
+name: Gchat Notification
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Send Notifications
+        if: success()
+        run: |
+          curl -X POST -H "Content-Type: application/json" \
+          -d '{
+          "text": "
+             ***BUILD SUCCESS***
+            ${{ job.status }}	
+            Build Triggered by: '$GITHUB_ACTOR'
+            Job URL: '$BUILD_URL'
+            Project Name: '$GITHUB_REPOSITORY'
+            Job Name: '$GITHUB_WORKFLOW'
+            Build Number: '${{github.run_number}}'
+            Branch Name: '$GITHUB_REF'
+            Build Started at: '${{ github.event.head_commit.timestamp }}'
+            BUILD EVENT: '$GITHUB_EVENT_NAME'
+            BINARY URL: ${{ secrets.JF_URL }}/'$GITHUB_WORKFLOW'/B_${{github.run_number}}/'$GITHUB_WORKFLOW'.tar.gz
+          "
+          }' ${{ secrets.GOOGLE_CHAT_WEBHOOK_URL }}
+          
+          else:
+          if: failure()
+          run: |
+          curl -X POST -H "Content-Type: application/json" \
+          -d '{
+          "text": "
+            ***BUILD FAILED***
+            ${{ job.status }}
+            Build Triggered by: '$GITHUB_ACTOR'
+            Job URL: '$BUILD_URL'
+            Project Name: '$GITHUB_REPOSITORY'
+            Job Name: '$GITHUB_WORKFLOW'
+            Build Number: '${{github.run_number}}'
+            Branch Name: '$GITHUB_REF'
+            Build Started at: '${{ github.event.head_commit.timestamp }}'
+            BUILD EVENT: '$GITHUB_EVENT_NAME'
+          "
+          }' ${{ secrets.GOOGLE_CHAT_WEBHOOK_URL }}
+          
+          else:
+          run: |
+          curl -X POST -H "Content-Type: application/json" \
+          -d '{
+          "text": "
+             ***BUILD STARTED***	
+            Build Triggered by: '$GITHUB_ACTOR'
+            Job URL: '$BUILD_URL'
+            Project Name: '$GITHUB_REPOSITORY'
+            Job Name: '$GITHUB_WORKFLOW'
+            Build Number: '${{github.run_number}}'
+            Branch Name: '$GITHUB_REF'
+            Build Started at: '${{ github.event.head_commit.timestamp }}'
+            BUILD EVENT: '$GITHUB_EVENT_NAME'
+          "
+          }' ${{ secrets.GOOGLE_CHAT_WEBHOOK_URL }}
